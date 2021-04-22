@@ -27,10 +27,13 @@ the details, here is the resulting chart:
 
 ## Why this method over any other?
 
-Sorting networks are branchless, operate on sequences in-place and require few registers, meaning the generated code can offer great performance.  Efficiency is O(n(log n)^2).  The run-time is uniform, i.e. independent of the ordering of the original sequence.
+Sorting networks are branchless, operate on sequences in-place and require few registers, meaning the generated code can offer great performance.
+As the control flow is independent of the sequence then the network can be applied efficiently to multiple sequences at once using simd instructions.
+The run-time is predictable and uniform, i.e. independent of the ordering of the original sequence.
 
 ## Why not this method?
 
+Efficiency is O(n(log n)^2), but this is also potentially the size of the code.
 For longer sequences the size of the network will lead to a large network and a lot of generated code, this may impact performance.
 Since the code is branchless there is no 'early-out', a different algorithm may be more efficient if sequences start partially sorted.
 
