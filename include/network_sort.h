@@ -7,7 +7,21 @@
 
 #endif
 
+#include <utility>
+
 namespace sorting_networks {
+
+static constexpr int round_down_to_power_of_2(int n) {
+  int result = 1;
+  while (2 * result <= n)
+    result *= 2;
+  return result;
+}
+
+
+static constexpr int size_of_first_block(int n) {
+  return round_down_to_power_of_2((2 * n) / 3);
+}
 
 namespace swappers {
 
@@ -99,9 +113,6 @@ private:
           container);
 
       Finalise<C, Swap, Off + Str, Str, (A + B - 1) / 2> f(container);
-      // for (int i = 0; i < (A + B - 1) / 2; ++i)  // Force unrolling of this?
-      //	Swap s(container[Off + Str * (2 * i + 1)], container[Off + Str *
-      //(2 * i + 2)]);
     }
   };
 
@@ -139,16 +150,6 @@ private:
     inline Finalise(C &container) {}
   };
 
-  static constexpr int size_of_first_block(int n) {
-    return round_down_to_power_of_2((2 * n) / 3);
-  }
-
-  static constexpr int round_down_to_power_of_2(int n) {
-    int result = 1;
-    while (2 * result <= n)
-      result *= 2;
-    return result;
-  }
 };
 
 template <class C> inline void network_sort(C &S) {
@@ -182,7 +183,8 @@ public:
   using Lane = typename OutputContainerPassthrough<OS>::Lane;
   OutputSwap(Lane a, Lane b) {
     const char end_marker = 'o';
-    const char empty_lane = '\372'; // centred dot
+    //const char empty_lane = '\372'; // centred dot
+    const char empty_lane = '.';
     const char crossed_lane = '-';
     for (unsigned int i = 0; i < a.place; ++i)
       a.output_str << empty_lane << ' ';
@@ -204,6 +206,50 @@ template <class OS, int N> OS &operator<<(OS &os, SortingNetwork<N>) {
                                             io_details::OutputSwap<OS>, 0, 1, N>
       sort(ocp);
   return os;
+}
+
+template<class C, class Swap>
+inline void merge_network(C& container, unsigned int a, unsigned int b, unsigned int offset, unsigned int stride) {
+  // Start by dealing with base cases
+  if((a == 1) && (b == 1)) {
+    Swap c(container[offset], container[offset + stride]);
+    return;
+  }
+  if((a == 1) && (b == 2)) {
+    Swap c1(container[offset], container[offset + 2 * stride]);
+    Swap c2(container[offset], container[offset + stride]);
+    return;
+  }
+  if((a == 2) && (b == 1)) {
+    Swap c1(container[offset], container[offset + 2 * stride]);
+    Swap c2(container[offset + stride], container[offset + 2 * stride]);
+    return;
+  }
+     
+  merge_network<C, Swap>(container, a / 2, (b + 1) / 2, offset, 2 * stride);
+  merge_network<C, Swap>(container, a / 2, b / 2, offset + stride, 2 * stride);
+
+  for(unsigned int i = 0; i < (a + b - 1) / 2; ++i)
+    Swap c(container[offset + (2 * i + 1) * stride], container[offset + (2 * i + 2) * stride]);
+}
+
+template<class C, class Swap>
+inline void sorting_network(C& container, unsigned int a, unsigned int offset, unsigned int stride) {
+
+  if(a == 1)
+    return;
+  if(a == 2) {
+    Swap s(container[offset], container[offset + stride]);
+    return;
+  }
+
+  unsigned int const a1 = size_of_first_block(a);
+  unsigned int const a2 = a - a1;
+
+  sorting_network<C, Swap>(container, a1, offset, stride);
+  sorting_network<C, Swap>(container, a2, offset + a1 * stride, stride);
+
+  merge_network<C, Swap>(container, a1, a2, offset, stride);
 }
 
 } // end of namespace sorting_networks
