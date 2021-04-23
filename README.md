@@ -25,6 +25,8 @@ the details, here is the resulting chart:
 
 ![benchmark-chart](https://user-images.githubusercontent.com/2971239/115790498-b7575600-a3be-11eb-80b7-5903d9087d9a.png)
 
+The code was compiled with clang. With gcc the results look quite different, gcc is able to vectorise the intswap version and the results are nearly as fast as the avx2 version.
+
 ## Why this method over any other?
 
 Sorting networks are branchless, operate on sequences in-place and require few registers, meaning the generated code can offer great performance.
