@@ -10,6 +10,38 @@
 namespace sorting_networks
 {
 
+	namespace swappers
+	{
+
+		template<class V>
+		struct DefaultComp {
+			inline bool operator()(V const& a, V const& b) { return a < b; }
+		};
+
+		template<class V, class Comp = DefaultComp<V>>
+		class DefaultSwap {
+		public:
+			inline DefaultSwap(V& a, V& b) {
+				Comp c{};
+				auto new_a = c(b, a) ? b : a;
+				b = c(b, a) ? a : b;
+				a = new_a;
+			}
+		};
+
+		template<class V>
+		class MinMaxSwap {
+		public:
+			inline MinMaxSwap(V& a, V& b) {
+				auto new_a = min(a, b);
+				b = max(a, b);
+				a = new_a;
+			}
+		};
+
+	}  // end of namespace swappers
+
+
 	template<int N>
 	class SortingNetwork {
 	public:
@@ -129,48 +161,10 @@ namespace sorting_networks
 		}
 	};
 
-	template<class OS, int N>
-	OS& operator<<(OS& os, SortingNetwork<N>) {
-		io_details::OutputContainerPassthrough<OS> ocp(os, N);
-		typename SortingNetwork<N>::template Sort<decltype(ocp), io_details::OutputSwap<OS>, 0, 1, N> sort(ocp);
-		return os;
-	}
-
 	template<class C>
 	inline void network_sort(C& S) {
-		SortingNetwork<std::tuple_size_v<C>> sort(S);
+		SortingNetwork<std::tuple_size<C>::value> sort(S);
 	}
-
-	namespace swappers
-	{
-
-		template<class V>
-		struct DefaultComp {
-			inline bool operator()(V const& a, V const& b) { return a < b; }
-		};
-
-		template<class V, class Comp = DefaultComp<V>>
-		class DefaultSwap {
-		public:
-			inline DefaultSwap(V& a, V& b) {
-				Comp c{};
-				auto new_a = c(b, a) ? b : a;
-				b = c(b, a) ? a : b;
-				a = new_a;
-			}
-		};
-
-		template<class V>
-		class MinMaxSwap {
-		public:
-			inline MinMaxSwap(V& a, V& b) {
-				auto new_a = min(a, b);
-				b = max(a, b);
-				a = new_a;
-			}
-		};
-
-	}  // end of namespace swappers
 
 	namespace io_details
 	{
@@ -216,5 +210,13 @@ namespace sorting_networks
 		};
 
 	}  // end of namespace io_details
+
+	template<class OS, int N>
+	OS& operator<<(OS& os, SortingNetwork<N>) {
+		io_details::OutputContainerPassthrough<OS> ocp(os, N);
+		typename SortingNetwork<N>::template Sort<decltype(ocp), io_details::OutputSwap<OS>, 0, 1, N> sort(ocp);
+		return os;
+	}
+
 
 }  // end of namespace sorting_networks

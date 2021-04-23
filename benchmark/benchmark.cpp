@@ -77,6 +77,12 @@ auto benchmark(F&& f, int n_tests, int n_elements)
 	return static_cast<double>(duration_in_ns);
 }
 
+int qsort_cmp(void const* a, void const* b) {
+	return (*(int*)a > *(int*)b) - (*(int*)a < *(int*)b);
+}
+
+constexpr int n_benchmarks = 6;
+
 template<int NumElements, typename OS>
 void run_benchmarks(int num_tests, OS& ostr) {
 	ostr << NumElements;
@@ -168,12 +174,6 @@ constexpr void constexpr_for(F&& f)
 		constexpr_for<Start + Inc, End, Inc>(f);
 	}
 }
-
-int qsort_cmp(void const* a, void const* b) {
-	return (*(int*)a > *(int*)b) - (*(int*)a < *(int*)b);
-}
-
-constexpr int n_benchmarks = 6;
 
 int main(int argc, const char* argv[])
 {
