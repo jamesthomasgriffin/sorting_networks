@@ -234,7 +234,7 @@ inline void merge_network(C& container, unsigned int a, unsigned int b, unsigned
 }
 
 template<class C, class Swap>
-inline void sorting_network(C& container, unsigned int a, unsigned int offset, unsigned int stride) {
+inline void sorting_network(C& container, unsigned int a, unsigned int offset = 0, unsigned int stride = 1) {
 
   if(a == 1)
     return;
