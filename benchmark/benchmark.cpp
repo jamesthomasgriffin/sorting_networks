@@ -79,7 +79,7 @@ int qsort_cmp(void const *a, void const *b) {
   return (*(int *)a > *(int *)b) - (*(int *)a < *(int *)b);
 }
 
-constexpr int n_benchmarks = 6;
+constexpr int n_benchmarks = 7;
 
 template<int NumElements, typename OS>
 void run_benchmarks(int num_tests, OS &ostr) {
@@ -105,6 +105,17 @@ void run_benchmarks(int num_tests, OS &ostr) {
         auto ptr = data.data();
         for (int i = 0; i < n_tests * n_elements; i += NumElements)
           qsort(ptr + i, NumElements, sizeof(int), qsort_cmp);
+      },
+      num_tests, NumElements);
+  
+  // untemplated network
+  results[result_ix++] = benchmark(
+      [](auto &data, auto n_tests, auto n_elements) {
+        auto ptr = data.data();
+        for (int i = 0; i < n_tests * n_elements; i += NumElements) {
+	  auto ptr2 = ptr + i;
+          sorting_networks::sorting_network<int*, IntSwap>(ptr2, NumElements);
+	}
       },
       num_tests, NumElements);
 
@@ -178,8 +189,10 @@ int main(int argc, const char *argv[]) {
 
   // Output column headers
   std::string names[n_benchmarks] = {"std::sort",        "qsort",
+	                             "untemplated_network",
                                      "static_sort",      "jtg_sort",
-                                     "jtg_sort_intswap", "jtg_sort_avx2"};
+                                     "jtg_sort_intswap", "jtg_sort_avx2"
+                                     };
   ostr << "NumElements";
   for (auto const &name : names)
     ostr << ", " << name;
