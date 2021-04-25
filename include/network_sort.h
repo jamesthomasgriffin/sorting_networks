@@ -3,7 +3,7 @@
 #ifdef VECTORCLASS_H
 #define NETWORK_SORT_SIMD_AVAILABLE
 
-#include <array>  // std::array for reordering data ready for simd sorting
+#include <array> // std::array for reordering data ready for simd sorting
 
 #endif
 
@@ -17,7 +17,6 @@ static constexpr int round_down_to_power_of_2(int n) {
     result *= 2;
   return result;
 }
-
 
 static constexpr int size_of_first_block(int n) {
   return round_down_to_power_of_2((2 * n) / 3);
@@ -149,7 +148,6 @@ private:
   struct Finalise<C, Swap, Off, Str, 0> {
     inline Finalise(C &container) {}
   };
-
 };
 
 template <class C> inline void network_sort(C &S) {
@@ -183,7 +181,7 @@ public:
   using Lane = typename OutputContainerPassthrough<OS>::Lane;
   OutputSwap(Lane a, Lane b) {
     const char end_marker = 'o';
-    //const char empty_lane = '\372'; // centred dot
+    // const char empty_lane = '\372'; // centred dot
     const char empty_lane = '.';
     const char crossed_lane = '-';
     for (unsigned int i = 0; i < a.place; ++i)
@@ -208,37 +206,40 @@ template <class OS, int N> OS &operator<<(OS &os, SortingNetwork<N>) {
   return os;
 }
 
-template<class C, class Swap>
-inline void merge_network(C& container, unsigned int a, unsigned int b, unsigned int offset, unsigned int stride) {
+template <class C, class Swap>
+inline void merge_network(C &container, unsigned int a, unsigned int b,
+                          unsigned int offset, unsigned int stride) {
   // Start by dealing with base cases
-  if((a == 1) && (b == 1)) {
+  if ((a == 1) && (b == 1)) {
     Swap c(container[offset], container[offset + stride]);
     return;
   }
-  if((a == 1) && (b == 2)) {
+  if ((a == 1) && (b == 2)) {
     Swap c1(container[offset], container[offset + 2 * stride]);
     Swap c2(container[offset], container[offset + stride]);
     return;
   }
-  if((a == 2) && (b == 1)) {
+  if ((a == 2) && (b == 1)) {
     Swap c1(container[offset], container[offset + 2 * stride]);
     Swap c2(container[offset + stride], container[offset + 2 * stride]);
     return;
   }
-     
+
   merge_network<C, Swap>(container, a / 2, (b + 1) / 2, offset, 2 * stride);
   merge_network<C, Swap>(container, a / 2, b / 2, offset + stride, 2 * stride);
 
-  for(unsigned int i = 0; i < (a + b - 1) / 2; ++i)
-    Swap c(container[offset + (2 * i + 1) * stride], container[offset + (2 * i + 2) * stride]);
+  for (unsigned int i = 0; i < (a + b - 1) / 2; ++i)
+    Swap c(container[offset + (2 * i + 1) * stride],
+           container[offset + (2 * i + 2) * stride]);
 }
 
-template<class C, class Swap>
-inline void sorting_network(C& container, unsigned int a, unsigned int offset = 0, unsigned int stride = 1) {
+template <class C, class Swap>
+inline void sorting_network(C &container, unsigned int a,
+                            unsigned int offset = 0, unsigned int stride = 1) {
 
-  if(a == 1)
+  if (a == 1)
     return;
-  if(a == 2) {
+  if (a == 2) {
     Swap s(container[offset], container[offset + stride]);
     return;
   }
