@@ -1,28 +1,30 @@
-#include <algorithm>       // For std::sort
-#include <assert.h>        // For assert
-#include <chrono>          // For std::chrono::high_resolution_clock and related classes
-#include <cstdlib>         // For qsort
-#include <fstream>         // For std::ofstream
-#include <iostream>        // For std::cout
-#include <random>          // For std::default_random_engine
-#include <vector>          // For std::vector
+#include <algorithm> // For std::sort
+#include <assert.h>  // For assert
+#include <chrono>  // For std::chrono::high_resolution_clock and related classes
+#include <cstdlib> // For qsort
+#include <fstream> // For std::ofstream
+#include <iostream> // For std::cout
+#include <random>   // For std::default_random_engine
+#include <vector>   // For std::vector
 
-#include "vectorclass.h"   // Agner Fog's library using x86 simd intrinsics
+#include "vectorclass.h" // Agner Fog's library using x86 simd intrinsics
 
-#include "static_sort.h"   // Vectorized/static-sort (available on github.com)
+#include "static_sort.h" // Vectorized/static-sort (available on github.com)
 
-#include "network_sort.h"  // Our implementation (for simd should be included after vectorclass.h)
+#include "sorting_networks.h" // Our implementation (for simd should be included after vectorclass.h)
 
 /*
 
-This offers rudimentary benchmarking, reordering the methods could offer 10-20% change in performance.
+This offers rudimentary benchmarking, reordering the methods could offer 10-20%
+change in performance.
 
 * Make sure to enable AVX2
 
 */
 
-// an example of an alternative method of swapping elements, used as a template parameter in one of our benchmarks
-// there is no consistently observed performance improvement (on JTG's laptop at least)
+// an example of an alternative method of swapping elements, used as a template
+// parameter in one of our benchmarks there is no consistently observed
+// performance improvement (on JTG's laptop at least)
 class IntSwap {
 public:
   inline IntSwap(int &x, int &y) {
@@ -32,8 +34,7 @@ public:
   }
 };
 
-template <class C> 
-static inline void fill_with_random_bits(C &container) {
+template <class C> static inline void fill_with_random_bits(C &container) {
   std::default_random_engine eng{123};
   for (auto &v : container)
     v = eng();
@@ -57,7 +58,7 @@ static inline void check_sorted_sequences(C &container, int num_elements) {
   }
 }
 
-template<class F> auto benchmark(F &&f, int n_tests, int n_elements) {
+template <class F> auto benchmark(F &&f, int n_tests, int n_elements) {
 
   std::vector<int> data(n_tests * n_elements);
   fill_with_random_bits(data);
@@ -81,7 +82,7 @@ int qsort_cmp(void const *a, void const *b) {
 
 constexpr int n_benchmarks = 7;
 
-template<int NumElements, typename OS>
+template <int NumElements, typename OS>
 void run_benchmarks(int num_tests, OS &ostr) {
   ostr << NumElements;
 
@@ -107,15 +108,15 @@ void run_benchmarks(int num_tests, OS &ostr) {
           qsort(ptr + i, NumElements, sizeof(int), qsort_cmp);
       },
       num_tests, NumElements);
-  
+
   // untemplated network
   results[result_ix++] = benchmark(
       [](auto &data, auto n_tests, auto n_elements) {
         auto ptr = data.data();
         for (int i = 0; i < n_tests * n_elements; i += NumElements) {
-	  auto ptr2 = ptr + i;
-          sorting_networks::sorting_network<int*, IntSwap>(ptr2, NumElements);
-	}
+          auto ptr2 = ptr + i;
+          sorting_networks::sorting_network<int *, IntSwap>(ptr2, NumElements);
+        }
       },
       num_tests, NumElements);
 
@@ -188,11 +189,10 @@ int main(int argc, const char *argv[]) {
   std::ofstream ostr{"output.csv"};
 
   // Output column headers
-  std::string names[n_benchmarks] = {"std::sort",        "qsort",
-	                             "untemplated_network",
-                                     "static_sort",      "jtg_sort",
-                                     "jtg_sort_intswap", "jtg_sort_avx2"
-                                     };
+  std::string names[n_benchmarks] = {
+      "std::sort",    "qsort",    "untemplated_network",
+      "static_sort",  "jtg_sort", "jtg_sort_intswap",
+      "jtg_sort_avx2"};
   ostr << "NumElements";
   for (auto const &name : names)
     ostr << ", " << name;

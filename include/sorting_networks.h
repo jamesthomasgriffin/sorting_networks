@@ -180,6 +180,16 @@ template <class OS> class OutputSwap {
 public:
   using Lane = typename OutputContainerPassthrough<OS>::Lane;
   OutputSwap(Lane a, Lane b) {
+    a.output_str << "SWAP(" << a.place << ", " << b.place << ");\n";
+  }
+};
+
+// Does not perform swapping, but instead outputs characters representing the
+// swap to an output stream
+template <class OS> class OutputGraphSwap {
+public:
+  using Lane = typename OutputContainerPassthrough<OS>::Lane;
+  OutputGraphSwap(Lane a, Lane b) {
     const char end_marker = 'o';
     // const char empty_lane = '\372'; // centred dot
     const char empty_lane = '.';
@@ -200,8 +210,8 @@ public:
 
 template <class OS, int N> OS &operator<<(OS &os, SortingNetwork<N>) {
   io_details::OutputContainerPassthrough<OS> ocp(os, N);
-  typename SortingNetwork<N>::template Sort<decltype(ocp),
-                                            io_details::OutputSwap<OS>, 0, 1, N>
+  typename SortingNetwork<N>::template Sort<
+      decltype(ocp), io_details::OutputGraphSwap<OS>, 0, 1, N>
       sort(ocp);
   return os;
 }

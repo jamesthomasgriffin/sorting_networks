@@ -10,6 +10,8 @@ if(MSVC)
     target_compile_options(Benchmark PRIVATE "/arch:AVX2")
 else()
     target_compile_options(Benchmark PRIVATE "-mavx2")
+    target_compile_options(Benchmark PRIVATE "-mfma")
+    target_compile_options(Benchmark PRIVATE "-O2")
 endif()
 
 include_directories(Benchmark PRIVATE
